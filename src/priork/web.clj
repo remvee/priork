@@ -1,7 +1,8 @@
 (ns priork.web
   (:require [priork.utils :as utils]
             [hiccup.core :as hiccup]
-            [hiccup.page-helpers :as hiccup-helpers])
+            [hiccup.page-helpers :as hiccup-helpers]
+            [ring.adapter.jetty :as jetty])
   (:use [compojure.core]
         [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
@@ -58,4 +59,6 @@
              (wrap-file "public")
              wrap-file-info))
 
-;; (do (require 'ring.adapter.jetty) (ring.adapter.jetty/run-jetty (var app) {:port 8080}))
+(defn -main []
+  (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))]
+    (jetty/run-jetty app {:port port})))
