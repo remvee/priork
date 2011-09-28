@@ -1,0 +1,31 @@
+html {
+    background: #eee;
+    line-height: 1.5;
+    font-family: sans-serif;
+    font-size: 12pt;
+}
+input, textarea, select, option, button {
+    font-family: sans-serif;
+    font-size: 12pt;
+}
+body {
+    width: 35em;
+    margin: 1em auto;
+    background: #fff;
+    padding: .5em 1em;
+}
+h1 {
+    margin: 0 0 .5em 0;
+    width: 100%;
+    border-bottom: solid #eee 1px;
+}
+
+ul.tasks {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+form.new-task input {
+    margin-top: .5em;
+    width: 100%;
+}
