@@ -25,13 +25,13 @@
                [:html
                 [:head
                  [:title title]
-                 (hiccup-helpers/include-css "/screen.css")]
+                 (hiccup-helpers/include-css "/screen.css")
+                 [:meta {:name "viewport" :content "width=device-width, initial-scale=1, maximum-scale=1"}]]
                 [:body
-                 [:header
-                  [:h1 title]]
-                 [:div.body                              
-                  (apply f args)]
-                 [:footer]
+                 [:div#container
+                  [:h1 title]
+                  [:div#body                              
+                   (apply f args)]]
                  (hiccup-helpers/include-js "/jquery.js" "/jquery-ui.js" "/app.js")]]))})
 
 (defn index []
