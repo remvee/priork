@@ -1,5 +1,6 @@
 (ns priork.web
-  (:require [priork.utils :as utils]
+  (:require [priork.store :as store]
+            [priork.utils :as utils]
             [hiccup.core :as hiccup]
             [hiccup.page-helpers :as hiccup-helpers]
             [ring.adapter.jetty :as jetty])
@@ -8,14 +9,26 @@
         [ring.middleware.file :only [wrap-file]]
         [ring.middleware.file-info :only [wrap-file-info]]))
 
-(def title "Priork")
+;;;;;;;;;;;;;;;;;;;;
+;; Model
 
-(def tasks (atom (vec (map (fn [x] {:id (utils/sha1 x) :text x})
-                           ["feed the cat"
-                            "water the plants"]))))
+(def project "priork")
+
+(def tasks (atom (or (store/get project) [])))
+
+(def backup-agent (agent nil))
+
+(defn swap-tasks! [f & args]
+  (dosync (apply swap! tasks f args)
+          (send-off backup-agent (fn [_] (store/set project @tasks)))))
 
 (defn task-by-id [id]
   (first (filter #(= (:id %) id) @tasks)))
+
+;;;;;;;;;;;;;;;;;;;;
+;; View
+
+(def title "Priork")
 
 (def h hiccup/h)
 
@@ -49,20 +62,23 @@
    [:form.new-task {:action "/add" :method "post"}
     [:input.focus {:type "text" :name "task"}]]])
 
+;;;;;;;;;;;;;;;;;;;;
+;; Controller
+
 (defroutes handler
   (GET "/" []
        (layout html-index))
   (POST "/add" [task]
         (when-not (= (count task) 0)
-          (swap! tasks conj {:id (utils/sha1 task), :text task}))
+          (swap-tasks! conj {:id (utils/sha1 task), :text task}))
         {:status 302
          :headers {"Location" "/"}})
   (POST "/remove" [id]
-        (swap! tasks (fn [tasks] (vec (filter #(not= (:id %) id) tasks))))
+        (swap-tasks! (fn [x] (vec (filter #(not= (:id %) id) x))))
         {:status 302
          :headers {"Location" "/"}})
   (POST "/reorder" {{ids "ids[]"} :params}
-        (swap! tasks (fn [_] (vec (filter identity (map task-by-id ids)))))
+        (swap-tasks! (fn [_] (vec (filter identity (map task-by-id ids)))))
         {:status 200}))
 
 (def app (-> handler
@@ -70,6 +86,9 @@
              (wrap-file "public")
              wrap-file-info))
 
+
+;;;;;;;;;;;;;;;;;;;;
+;; Running for running on Heroku
 (defn -main []
   (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))]
     (jetty/run-jetty app {:port port})))
