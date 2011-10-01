@@ -7,7 +7,8 @@
   (:use [compojure.core]
         [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
-        [ring.middleware.file-info :only [wrap-file-info]]))
+        [ring.middleware.file-info :only [wrap-file-info]]
+        [ring.middleware.gzip :only [wrap-gzip]]))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Model
@@ -83,6 +84,7 @@
 
 (def app (-> handler
              wrap-params
+             wrap-gzip
              (wrap-file "public")
              wrap-file-info))
 
