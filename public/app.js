@@ -7,7 +7,7 @@ $(document).ready(function() {
 $(document).ready(function() {
   $(".tasks").sortable({
     update: function() {
-      $.post("/reorder", {
+      $.post("order", {
         ids: $(this).sortable("toArray")
       });
     }
@@ -20,7 +20,7 @@ $(document).ready(function() {
     var li = $(this).parent()[0];
     var id = li.getAttribute("id");
     var text = this.innerHTML;
-    li.innerHTML = "<form class='update' action='/update' method='post'>" +
+    li.innerHTML = "<form class='update' action='update' method='post'>" +
       "<input type='text' name='task' value='" + text + "'>" +
       "<input type='hidden' name='id' value='" + id + "'>" +
       "</form>";

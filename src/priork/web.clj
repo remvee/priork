@@ -52,7 +52,7 @@
 (defn html-task [task]
   [:li.task {:id (:id task)}
    [:a.edit (h (:text task))]
-   [:form.remove {:action "/remove" :method "post"}
+   [:form.remove {:action "delete" :method "post"}
     [:input {:type "hidden" :name "id" :value (:id task)}]
     [:button {:type "submit" :onclick "return confirm('Sure?')"} "&times;"]]])
 
@@ -60,7 +60,7 @@
   [:div
    [:ul.tasks
     (map html-task @tasks)]
-   [:form.new-task {:action "/add" :method "post"}
+   [:form.new-task {:action "create" :method "post"}
     [:input.focus {:type "text" :name "task"}]]])
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -69,7 +69,7 @@
 (defroutes handler
   (GET "/" []
        (layout html-index))
-  (POST "/add" [task]
+  (POST "/create" [task]
         (when-not (= (count task) 0)
           (swap-tasks! conj {:id (utils/sha1 task), :text task}))
         {:status 302
@@ -79,11 +79,11 @@
                                             {:id (utils/sha1 task) :text task}} x))))
         {:status 302
          :headers {"Location" "/"}})
-  (POST "/remove" [id]
+  (POST "/delete" [id]
         (swap-tasks! (fn [x] (vec (filter #(not= (:id %) id) x))))
         {:status 302
          :headers {"Location" "/"}})
-  (POST "/reorder" {{ids "ids[]"} :params}
+  (POST "/order" {{ids "ids[]"} :params}
         (swap-tasks! (fn [_] (vec (filter identity (map task-by-id ids)))))
         {:status 200}))
 
