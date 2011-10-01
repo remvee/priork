@@ -37,26 +37,36 @@ ul.tasks {
     margin: 0;
     list-style: none;
 }
+
 li.task {
     clear: both;
     background: #ffffff;
     padding: 4px;
 }
+
 li.task:nth-child(odd) {
     background: #f8f8f8;
 }
+
+a.update {
+    cursor: pointer;
+}
+
 form.new-task input {
     margin-top: .5em;
     width: 100%;
 }
+
 form.remove {
     display: inline;
     float: right;
 }
+
 form.remove button {
     padding: 1px 2px;
     font-size: 7pt;
 }
+
 form.update, form.update input {
     width: 100%;
 }

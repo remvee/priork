@@ -51,7 +51,7 @@
 
 (defn html-task [task]
   [:li.task {:id (:id task)}
-   [:a.edit (h (:text task))]
+   [:a.update (h (:text task))]
    [:form.remove {:action "delete" :method "post"}
     [:input {:type "hidden" :name "id" :value (:id task)}]
     [:button {:type "submit" :onclick "return confirm('Sure?')"} "&times;"]]])
@@ -66,6 +66,9 @@
 ;;;;;;;;;;;;;;;;;;;;
 ;; Controller
 
+(defn xhr? [request]
+  (= ((:headers request) "x-requested-with") "XMLHttpRequest"))
+
 (defroutes handler
   (GET "/" []
        (layout html-index))
@@ -74,11 +77,12 @@
           (swap-tasks! conj {:id (utils/sha1 task), :text task}))
         {:status 302
          :headers {"Location" "/"}})
-  (POST "/update" [id task]
-        (swap-tasks! (fn [x] (vec (replace {(task-by-id id)
-                                            {:id (utils/sha1 task) :text task}} x))))
-        {:status 302
-         :headers {"Location" "/"}})
+  (POST "/update" {{id "id" task "task"} :params :as request}
+        (let [task {:id (utils/sha1 task) :text task}]
+          (swap-tasks! (fn [x] (vec (replace {(task-by-id id) task} x))))
+          (if (xhr? request)
+            (hiccup/html (html-task task))
+            {:status 302 :headers {"Location" "/"}})))
   (POST "/delete" [id]
         (swap-tasks! (fn [x] (vec (filter #(not= (:id %) id) x))))
         {:status 302

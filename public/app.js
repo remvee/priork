@@ -16,14 +16,30 @@ $(document).ready(function() {
 
 // setup inplace editing
 $(document).ready(function() {
-  $("li.task a.edit").click(function(event) {
+  var handler = function(event) {
+    event.preventDefault();
+
     var li = $(this).parent()[0];
     var id = li.getAttribute("id");
     var text = this.innerHTML;
+
     li.innerHTML = "<form class='update' action='update' method='post'>" +
       "<input type='text' name='task' value='" + text + "'>" +
       "<input type='hidden' name='id' value='" + id + "'>" +
       "</form>";
+
     $(li).find("input[type='text']").focus();
-  });
+    $(li).find("form.update").submit(function(event) {
+      event.preventDefault();
+      $.post("update", $(this).serialize(), function(text) {
+        var n = document.createElement("div");
+        n.innerHTML = text;
+        n = n.children[0];
+        li.parentNode.replaceChild(n, li);
+        $(n).find("a.update").click(handler);
+      });
+    });
+  };
+
+  $("li.task a.update").click(handler);
 });
