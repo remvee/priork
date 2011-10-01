@@ -51,7 +51,7 @@
 
 (defn html-task [task]
   [:li.task {:id (:id task)}
-   (h (:text task))
+   [:a.edit (h (:text task))]
    [:form.remove {:action "/remove" :method "post"}
     [:input {:type "hidden" :name "id" :value (:id task)}]
     [:button {:type "submit" :onclick "return confirm('Sure?')"} "&times;"]]])
@@ -74,6 +74,11 @@
           (swap-tasks! conj {:id (utils/sha1 task), :text task}))
         {:status 302
          :headers {"Location" "/"}})
+  (POST "/update" [id task]
+        (swap-tasks! (fn [x] (vec (replace {(task-by-id id)
+                                            {:id (utils/sha1 task) :text task}} x))))
+        {:status 302
+         :headers {"Location" "/"}})
   (POST "/remove" [id]
         (swap-tasks! (fn [x] (vec (filter #(not= (:id %) id) x))))
         {:status 302
@@ -93,4 +98,4 @@
 ;; Running for running on Heroku
 (defn -main []
   (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))]
-    (jetty/run-jetty app {:port port})))
+    (jetty/run-jetty (var app) {:port port})))
