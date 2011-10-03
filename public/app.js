@@ -23,10 +23,10 @@ $(document).ready(function() {
     var id = li.getAttribute("id");
     var text = this.innerHTML;
 
-    li.innerHTML = "<form class='update' action='update' method='post'>" +
+    li.innerHTML = "<form class='update' action='update' method='post'><div>" +
       "<input type='text' name='task' value='" + text + "'>" +
       "<input type='hidden' name='id' value='" + id + "'>" +
-      "</form>";
+      "</div></form>";
 
     $(li).find("input[type='text']").focus();
     $(li).find("form.update").submit(function(event) {

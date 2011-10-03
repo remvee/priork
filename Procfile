@@ -1,1 +1,1 @@
-web: lein run -m priork.web
+web: lein run -m priork.core
