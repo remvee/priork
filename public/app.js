@@ -24,7 +24,7 @@ $(document).ready(function() {
     var text = this.innerHTML;
 
     li.innerHTML = "<form class='update' action='update' method='post'><div>" +
-      "<input type='text' name='task' value='" + text + "'>" +
+      "<input type='text' autocomplete='off' name='task' value='" + text + "'>" +
       "<input type='hidden' name='id' value='" + id + "'>" +
       "</div></form>";
 

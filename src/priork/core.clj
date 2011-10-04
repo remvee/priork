@@ -70,7 +70,7 @@
    [:ul.tasks
     (map html-task @tasks)]
    [:form.new-task {:action "create" :method "post"}
-    [:input.focus {:type "text" :name "task"}]]])
+    [:input.focus {:type "text" :autocomplete "off" :name "task"}]]])
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Controller
