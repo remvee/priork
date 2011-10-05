@@ -22,7 +22,7 @@ div#body {
     padding: 1em;
 }
 
-h1 {
+header {
     margin: 0;
     padding: 0 .5em;
     border-radius: 10px 10px 0 0;
@@ -30,6 +30,19 @@ h1 {
     background: #000000;
     color: #aaaaaa;
     font-size: 18pt;
+}
+header h1, header h2 {
+    display: inline;
+    margin: 0;
+    padding: 0 1em 0 0;
+}
+header h1 {
+    font-size: 18pt;
+}
+header h2 {
+    font-size: 14pt;
+    font-style: italic;
+    color: #dddddd;
 }
 
 ul.tasks {

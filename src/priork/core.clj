@@ -12,7 +12,7 @@
 ;;;;;;;;;;;;;;;;;;;;
 ;; Model
 
-(def project "priork")
+(def ^:dynamic *project* "priork")
 
 (defn gen-id []
   (str "task-" (java.util.UUID/randomUUID)))
@@ -21,19 +21,24 @@
                                             "REDISTOGO_URL" ; for running on Heroku
                                             "redis://localhost:6379/")}))
 
-(def tasks (atom (or (if-let [val (redis/get db project)]
-                       (with-in-str val (read)))
-                     [])))
+(def data (atom (or (if-let [val (redis/get db "data")]
+                      (with-in-str val (read)))
+                    {})))
 
 (def backup-agent (agent nil))
 
 (defn swap-tasks! [f & args]
-  (dosync (apply swap! tasks f args)
+  (dosync (swap! data #(update-in %
+                                  [(or *project* "/")]
+                                  (fn [v] (apply f (or v []) args))))
           (send-off backup-agent
-                    (fn [_] (redis/set db project (with-out-str (prn @tasks)))))))
+                    (fn [_] (redis/set db "data" (with-out-str (prn @data)))))))
+
+(defn tasks []
+  (@data (or *project* "/")))
 
 (defn task-by-id [id]
-  (first (filter #(= (:id %) id) @tasks)))
+  (first (filter #(= (:id %) id) (tasks))))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; View
@@ -47,13 +52,15 @@
    :headers {"Content-Type" "text/html; charset=UTF-8"}
    :body (str (hiccup-helpers/html5
                [:head
-                [:title (h title)]
+                [:title (h (if *project* (str *project* "-" title) title))]
                 (hiccup-helpers/include-css "/screen.css")
                 [:meta {:name "viewport"
                         :content "width=device-width, initial-scale=1, maximum-scale=1"}]]
                [:body
                 [:div#container
-                 [:h1 (h title)]
+                 [:header
+                  [:h1 (h title)]
+                  [:h2 (h *project*)]]
                  [:div#body                              
                   (apply f args)]]
                 (hiccup-helpers/include-js "/jquery.js" "/jquery-ui.js" "/app.js")]))})
@@ -68,7 +75,7 @@
 (defn html-index []
   [:div
    [:ul.tasks
-    (map html-task @tasks)]
+    (map html-task (tasks))]
    [:form.new-task {:action "create" :method "post"}
     [:input.focus {:type "text" :autocomplete "off" :name "task"}]]])
 
@@ -78,34 +85,42 @@
 (defn xhr? [request]
   (= ((:headers request) "x-requested-with") "XMLHttpRequest"))
 
+(defn redirect-to-index []  
+  {:status 302 :headers {"Location" (if *project* (str "/" *project* "/") "/")}})
+
 (defroutes handler
   (GET "/" []
        (layout html-index))
   (POST "/create" [task]
         (when-not (= (count task) 0)
           (swap-tasks! conj {:id (gen-id), :text task}))
-        {:status 302
-         :headers {"Location" "/"}})
+        (redirect-to-index))
   (POST "/update" {{id "id" task "task"} :params :as request}
         (let [task {:id (gen-id) :text task}]
           (swap-tasks! (fn [x] (vec (replace {(task-by-id id) task} x))))
           (if (xhr? request)
             (hiccup/html (html-task task))
-            {:status 302 :headers {"Location" "/"}})))
+            (redirect-to-index))))
   (POST "/delete" [id]
         (swap-tasks! (fn [x] (vec (filter #(not= (:id %) id) x))))
-        {:status 302
-         :headers {"Location" "/"}})
+        (redirect-to-index))
   (POST "/order" {{ids "ids[]"} :params}
         (swap-tasks! (fn [_] (vec (filter identity (map task-by-id ids)))))
         {:status 200}))
 
+(defn wrap-project [app]
+  (fn [req]
+    (binding [*project* (last (re-matches #"/(.*?)/.*" (:uri req)))]
+      (app (assoc req :uri (if *project*
+                             (subs (:uri req) (inc (count *project*)))
+                             (:uri req)))))))
+
 (def app (-> handler
+             wrap-project
              wrap-params
              wrap-gzip
              (wrap-file "public")
              wrap-file-info))
-
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Running for running on Heroku
