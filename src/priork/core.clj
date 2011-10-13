@@ -106,7 +106,10 @@
         (redirect-to-index))
   (POST "/order" {{ids "ids[]"} :params}
         (swap-tasks! (fn [_] (vec (filter identity (map task-by-id ids)))))
-        {:status 200}))
+        {:status 200})
+  (ANY "*" {uri :uri}
+       (if-not (re-matches #".*/$" uri)
+         {:status 302 :headers {"Location" (str uri "/")}})))
 
 (defn wrap-project [app]
   (fn [req]
