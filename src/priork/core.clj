@@ -7,19 +7,21 @@
         [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
         [ring.middleware.file-info :only [wrap-file-info]]
-        [ring.middleware.gzip :only [wrap-gzip]]))
+        [ring.middleware.gzip :only [wrap-gzip]])
+  (:import [java.net URLEncoder URLDecoder]
+           [java.util UUID]))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Model
 
-(def ^:dynamic *project* "priork")
+(def ^:dynamic *project* nil)
 
 (defn gen-id []
-  (str "task-" (java.util.UUID/randomUUID)))
+  (str "task-" (UUID/randomUUID)))
 
-(def db (redis/init {:url (clojure.core/get (System/getenv)
-                                            "REDISTOGO_URL" ; for running on Heroku
-                                            "redis://localhost:6379/")}))
+(def db (redis/init {:url (get (System/getenv)
+                               "REDISTOGO_URL" ; for running on Heroku
+                               "redis://localhost:6379/")}))
 
 (def data (atom (or (if-let [val (redis/get db "data")]
                       (with-in-str val (read)))
@@ -28,14 +30,20 @@
 (def backup-agent (agent nil))
 
 (defn swap-tasks! [f & args]
-  (dosync (swap! data #(update-in %
-                                  [(or *project* "/")]
-                                  (fn [v] (apply f (or v []) args))))
+  (dosync (swap! data #(into {}
+                             (filter (fn [[k v]] (or (nil? k)
+                                                     (not (empty? v))))
+                                     (update-in %
+                                                [*project*]
+                                                (fn [v] (apply f (or v []) args))))))
           (send-off backup-agent
                     (fn [_] (redis/set db "data" (with-out-str (prn @data)))))))
 
+(defn projects []
+  (sort (keys @data)))
+
 (defn tasks []
-  (@data (or *project* "/")))
+  (get @data *project*))
 
 (defn task-by-id [id]
   (first (filter #(= (:id %) id) (tasks))))
@@ -46,6 +54,8 @@
 (def title "Priork")
 
 (def h hiccup/h)
+
+(declare project-path)
 
 (defn layout [f & args]
   {:status 200
@@ -62,7 +72,13 @@
                   [:h1 (h title)]
                   [:h2 (h *project*)]]
                  [:div#body                              
-                  (apply f args)]]
+                  (apply f args)]
+                 [:footer
+                  [:ul.projects
+                   (map (fn [project]
+                          [:li [:a {:href (project-path project)}
+                                (if project (h project) "&uarr;")]])
+                        (projects))]]]
                 (hiccup-helpers/include-js "/jquery.js" "/jquery-ui.js" "/app.js")]))})
 
 (defn html-task [task]
@@ -82,11 +98,14 @@
 ;;;;;;;;;;;;;;;;;;;;
 ;; Controller
 
+(defn project-path [project]
+  (if project (str "/" (URLEncoder/encode project) "/") "/"))
+
 (defn xhr? [request]
   (= ((:headers request) "x-requested-with") "XMLHttpRequest"))
 
 (defn redirect-to-index []  
-  {:status 302 :headers {"Location" (if *project* (str "/" *project* "/") "/")}})
+  {:status 302 :headers {"Location" (project-path *project*)}})
 
 (defroutes handler
   (GET "/" []
@@ -113,10 +132,11 @@
 
 (defn wrap-project [app]
   (fn [req]
-    (binding [*project* (last (re-matches #"/(.*?)/.*" (:uri req)))]
-      (app (assoc req :uri (if *project*
-                             (subs (:uri req) (inc (count *project*)))
-                             (:uri req)))))))
+    (let [path (last (re-matches #"/(.*?)/.*" (:uri req)))]
+      (binding [*project* (and path (URLDecoder/decode path))]
+        (app (assoc req :uri (if *project*
+                               (subs (:uri req) (inc (count path)))
+                               (:uri req))))))))
 
 (def app (-> handler
              wrap-project

@@ -83,3 +83,21 @@ form.remove button {
 form.update, form.update input {
     width: 100%;
 }
+
+footer {
+    text-align: center;
+    border-top: solid #eeeeee 1px;
+}
+ul.projects {
+    padding: 0 0 .3em 0;
+    margin: 0;
+}
+ul.projects li {
+    font-size: xx-small;
+    display: inline;
+    padding: 0 .7em 0 0;
+    margin: 0;
+}
+ul.projects a {
+    color: #666666;
+}
