@@ -7,7 +7,8 @@
         [ring.middleware.params :only [wrap-params]]
         [ring.middleware.file :only [wrap-file]]
         [ring.middleware.file-info :only [wrap-file-info]]
-        [ring.middleware.gzip :only [wrap-gzip]])
+        [ring.middleware.gzip :only [wrap-gzip]]
+        [remvee.ring.middleware.basic-authentication :only [wrap-basic-authentication]])
   (:import [java.net URLEncoder URLDecoder]
            [java.util UUID]))
 
@@ -47,6 +48,14 @@
 
 (defn task-by-id [id]
   (first (filter #(= (:id %) id) (tasks))))
+
+(defn wrap-project [app]
+  (fn [req]
+    (let [path (last (re-matches #"/(.*?)/.*" (:uri req)))]
+      (binding [*project* (and path (URLDecoder/decode path))]
+        (app (assoc req :uri (if *project*
+                               (subs (:uri req) (inc (count path)))
+                               (:uri req))))))))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; View
@@ -130,20 +139,19 @@
        (if-not (re-matches #".*/$" uri)
          {:status 302 :headers {"Location" (str uri "/")}})))
 
-(defn wrap-project [app]
-  (fn [req]
-    (let [path (last (re-matches #"/(.*?)/.*" (:uri req)))]
-      (binding [*project* (and path (URLDecoder/decode path))]
-        (app (assoc req :uri (if *project*
-                               (subs (:uri req) (inc (count path)))
-                               (:uri req))))))))
+(defn auth [username password]
+  (let [u (System/getenv "BASIC_AUTH_USERNAME")
+        p (System/getenv "BASIC_AUTH_PASSWORD")]
+    (or (and u p (= u username) (= p password))
+        (not (or u p)))))
 
 (def app (-> handler
              wrap-project
              wrap-params
              wrap-gzip
              (wrap-file "public")
-             wrap-file-info))
+             wrap-file-info
+             (wrap-basic-authentication auth)))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Running for running on Heroku
