@@ -139,11 +139,23 @@
        (if-not (re-matches #".*/$" uri)
          {:status 302 :headers {"Location" (str uri "/")}})))
 
+;;;;;;;;;;;;;;;;;;;;
+;; Middleware
+
 (defn auth [username password]
   (let [u (System/getenv "BASIC_AUTH_USERNAME")
         p (System/getenv "BASIC_AUTH_PASSWORD")]
     (or (and u p (= u username) (= p password))
         (not (or u p)))))
+
+(defn wrap-force-ssl [app]
+  (fn [req]
+    (if (or (= "localhost" (:server-name req))
+            (= :https (:scheme req))
+            (= "https" ((:headers req) "x-forwarded-proto")))
+      (app req)
+      {:status 302
+       :headers {"Location" (str "https://" (:server-name req) (:uri req))}})))
 
 (def app (-> handler
              wrap-project
@@ -151,7 +163,8 @@
              wrap-gzip
              (wrap-file "public")
              wrap-file-info
-             (wrap-basic-authentication auth)))
+             (wrap-basic-authentication auth)
+             wrap-force-ssl))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Running for running on Heroku
