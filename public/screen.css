@@ -34,14 +34,13 @@ header {
 header h1, header h2 {
     display: inline;
     margin: 0;
-    padding: 0 1em 0 0;
+    padding: 0 .5em 0 0;
 }
 header h1 {
-    font-size: 18pt;
+    font-size: 24px;
 }
 header h2 {
     font-size: 14pt;
-    font-style: italic;
     color: #dddddd;
 }
 
@@ -66,8 +65,8 @@ a.update {
 }
 
 form.new-task input {
-    margin-top: .5em;
-    width: 100%;
+    margin-bottom: .5em;
+    width: 99%;
 }
 
 form.remove {
@@ -80,8 +79,12 @@ form.remove button {
     font-size: 7pt;
 }
 
-form.update, form.update input {
+form.update {
     width: 100%;
+}
+
+form.update input {
+    width: 99%;
 }
 
 footer {
@@ -100,4 +103,25 @@ ul.projects li {
 }
 ul.projects a {
     color: #666666;
+}
+
+@media (max-width:35em) {
+    html, body { 
+        margin: 0; 
+        background: #ffffff; 
+    }
+    header { 
+        border: none; 
+        border-radius: 0; 
+        -webkit-border-radius: 0; 
+    }
+    div#container { 
+        margin: 0; 
+        border: none; 
+        border-radius: 0; 
+        -webkit-border-radius: 0; 
+        max-width: 100%; 
+        box-shadow: none; 
+        -webkit-box-shadow: none;
+    }
 }
