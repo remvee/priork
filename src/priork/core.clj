@@ -39,12 +39,13 @@
 (def backup-agent (agent nil))
 
 (defn swap-tasks! [f & args]
-  (dosync (swap! data #(into {}
-                             (filter (fn [[k v]] (or (nil? k)
-                                                     (not (empty? v))))
-                                     (update-in %
-                                                [*project*]
-                                                (fn [v] (apply f (or v []) args))))))
+  (dosync (swap! data
+                 #(into {}
+                        (filter (fn [[k v]] (or (nil? k)
+                                                (not (empty? v))))
+                                (update-in %
+                                           [*project*]
+                                           (fn [v] (apply f v args))))))
           (send-off backup-agent
                     (fn [_] (redis/set db "data" (with-out-str (prn @data)))))))
 
@@ -54,8 +55,8 @@
 (defn tasks []
   (get @data *project*))
 
-(defn task-by-id [id]
-  (first (filter #(= (:id %) id) (tasks))))
+(defn task-by-id [tasks id]
+  (first (filter #(= (:id %) id) tasks)))
 
 (defn wrap-project [app]
   (fn [req]
@@ -107,10 +108,10 @@
 
 (defn html-index []
   [:div
-   [:ul.tasks
-    (map html-task (tasks))]
    [:form.new-task {:action "create" :method "post"}
-    [:input.focus {:type "text" :autocomplete "off" :name "task"}]]])
+    [:input.focus {:type "text" :autocomplete "off" :name "task"}]]
+   [:ul.tasks
+    (map html-task (tasks))]])
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Controller
@@ -133,15 +134,16 @@
         (redirect-to-index))
   (POST "/update" {{id "id" task "task"} :params :as request}
         (let [task {:id (gen-id) :text task}]
-          (swap-tasks! (fn [x] (vec (replace {(task-by-id id) task} x))))
+          (swap-tasks! #(replace {(task-by-id % id) task} %))
           (if (xhr? request)
             (hiccup/html (html-task task))
             (redirect-to-index))))
   (POST "/delete" [id]
-        (swap-tasks! (fn [x] (vec (filter #(not= (:id %) id) x))))
+        (swap-tasks! (fn [x] (filter #(not= (:id %) id) x)))
         (redirect-to-index))
   (POST "/order" {{ids "ids[]"} :params}
-        (swap-tasks! (fn [_] (vec (filter identity (map task-by-id ids)))))
+        (swap-tasks! (fn [x] (filter identity
+                                     (map #(task-by-id x %) ids))))
         {:status 200})
   (ANY "*" {uri :uri}
        (if-not (re-matches #".*/$" uri)
