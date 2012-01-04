@@ -111,9 +111,13 @@ ul.projects a {
         background: #ffffff; 
     }
     header { 
+        padding: 0 4px;
         border: none; 
         border-radius: 0; 
         -webkit-border-radius: 0; 
+    }
+    div#body {
+        padding: 4px;
     }
     div#container { 
         margin: 0; 
