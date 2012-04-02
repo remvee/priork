@@ -16,7 +16,7 @@
         [ring.middleware.file :only [wrap-file]]
         [ring.middleware.file-info :only [wrap-file-info]]
         [ring.middleware.gzip :only [wrap-gzip]]
-        [remvee.ring.middleware.basic-authentication :only [wrap-basic-authentication]])
+        [ring.middleware.basic-authentication :only [wrap-basic-authentication]])
   (:import [java.net URLEncoder URLDecoder]
            [java.util UUID]))
 

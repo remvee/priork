@@ -8,7 +8,7 @@
                  [ring/ring-devel "0.3.11"]
                  [clj-redis "0.0.12"]
                  [amalloy/ring-gzip-middleware "0.1.0"]
-                 [ring-basic-authentication "0.0.1"]]
+                 [ring-basic-authentication "1.0.0"]]
   
   :plugins [[lein-cljsbuild "0.1.2"]]
 
