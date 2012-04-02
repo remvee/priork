@@ -1,2 +1,6 @@
 /lib
 /classes
+/.lein-cljsbuild-compiler-0
+/.lein-deps-sum
+/.lein-plugins
+/public/core.js

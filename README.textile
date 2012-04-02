@@ -6,6 +6,8 @@ h2. Usage
 
 <pre>
 heroku create -s cedar
+heroku labs:enable user_env_compile
+heroku config:add LEIN_BUILD_TASK="compile :all"
 heroku addons:add redistogo:nano
 heroku addons:add ssl:piggyback
 heroku config:add BASIC_AUTH_USERNAME=yelp BASIC_AUTH_PASSWORD=snork

@@ -99,7 +99,7 @@
                         (projects))]]]
                 (hiccup-helpers/include-js "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
                                            "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"
-                                           "/app.js")]))})
+                                           "/core.js")]))})
 
 (defn html-task [task]
   [:li.task {:id (:id task)}
