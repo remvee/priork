@@ -1,4 +1,5 @@
-(ns priork.core)
+(ns priork.core
+  (:require [goog.string :as s]))
 
 (defn map->js
   "Transform CLJ map into JS map."
@@ -28,13 +29,14 @@
   (.preventDefault event)
   (let [li (aget (.parent ($ (js* "this"))) 0)
         id (.getAttribute li "id")
-        text (. (js* "this") -innerHTML)]
+        text (s/unescapeEntities (. (js* "this") -innerHTML))]
     (set! (. li -innerHTML)
           (str "<form class='update' action='update' method='post'><div>"
-               "<input type='text' autocomplete='off' name='task' value='" text "'>"
+               "<input type='text' autocomplete='off' name='task'>"
                "<input type='hidden' name='id' value='" id "'>"
                "</div></form>"))
     (-> ($ li) (.find "input[type='text']") (.focus))
+    (-> ($ li) (.find "input[type='text']") (.val text))
     (-> ($ li)
         (.find "form.update")
         (.submit (fn [event]
