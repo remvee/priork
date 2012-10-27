@@ -103,10 +103,11 @@
 
 (defn html-task [task]
   [:li.task {:id (:id task)}
-   [:a.update (h (:text task))]
+   [:a.update
+    [:span.task-text (h (:text task))]]
    [:form.remove {:action "delete" :method "post"}
     [:input {:type "hidden" :name "id" :value (:id task)}]
-    [:button {:type "submit" :onclick "return confirm('Sure?')"} "&times;"]]])
+    [:button {:type "submit" :class "delete"} "&times;"]]])
 
 (defn html-index []
   [:div

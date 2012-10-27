@@ -14,6 +14,18 @@
 ;; serve first focussable element
 ($ #(-> ($ ".focus") (.focus)))
 
+;; protect delete buttons with confirm
+($ #(-> ($ "button.delete")
+        (.on "click" (fn [event]
+                       (let [task-text (-> ($ (js* "this"))
+                                           (.parents ".task")
+                                           (.find ".task-text")
+                                           (.text))]
+                         (if-not (js/confirm (str "Do you really want to delete '"
+                                                  task-text
+                                                  "'?"))
+                           (.preventDefault event)))))))
+
 ;; setup sortable
 ($ #(-> ($ ".tasks")
         (.sortable (map->js
@@ -29,7 +41,9 @@
   (.preventDefault event)
   (let [li (aget (.parent ($ (js* "this"))) 0)
         id (.getAttribute li "id")
-        text (s/unescapeEntities (. (js* "this") -innerHTML))]
+        text ( -> ( $ (js* "this"))
+                  (.find ".task-text")
+                  (.text))]
     (set! (. li -innerHTML)
           (str "<form class='update' action='update' method='post'><div>"
                "<input type='text' autocomplete='off' name='task'>"
