@@ -97,8 +97,8 @@
                           [:li [:a {:href (project-path project)}
                                 (if project (h project) "&uarr;")]])
                         (projects))]]]
-                (hiccup-helpers/include-js "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
-                                           "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"
+                (hiccup-helpers/include-js "/jquery.min.js"
+                                           "/jquery-ui.min.js"
                                            "/core.js")]))})
 
 (defn html-task [task]
