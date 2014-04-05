@@ -1,1 +1,1 @@
-web: lein trampoline run -m priork.core
+web: lein with-profile production run -m priork.core

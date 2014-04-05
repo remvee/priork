@@ -8,7 +8,7 @@
 
 (ns priork.core
   (:require [hiccup.core :as hiccup]
-            [hiccup.page-helpers :as hiccup-helpers]
+            [hiccup.page :as hiccup-helpers]
             [clj-redis.client :as redis]
             [ring.adapter.jetty :as jetty])
   (:use [compojure.core]
