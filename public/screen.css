@@ -51,9 +51,10 @@ ul.tasks {
 }
 
 li.task {
-    clear: both;
+    position: relative;
+    min-height: 25px;
     background: #ffffff;
-    padding: 4px;
+    padding: 10px 25px 10px 5px;
 }
 
 li.task:nth-child(odd) {
@@ -70,8 +71,9 @@ form.new-task input {
 }
 
 form.remove {
-    display: inline;
-    float: right;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 form.remove button {
@@ -92,22 +94,25 @@ footer {
     border-top: solid #eeeeee 1px;
 }
 ul.projects {
-    padding: 0 0 .3em 0;
+    padding: .3em;
     margin: 0;
 }
 ul.projects li {
-    font-size: xx-small;
-    display: inline;
-    padding: 0 .7em 0 0;
+    font-size: small;
+    display: inline-block;
+    padding: .2em;
     margin: 0;
 }
 ul.projects a {
+    display: inline-block;
+    padding: .2em;
     color: #666666;
 }
 
-@media (max-width:35em) {
+@media (max-width: 35em) {
     html, body { 
         margin: 0; 
+        padding: 0;
         background: #ffffff; 
     }
     header { 
