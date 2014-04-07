@@ -181,10 +181,10 @@
 (def app (-> handler
              wrap-project
              wrap-params
-             wrap-gzip
              (wrap-file "public")
              wrap-file-info
              (wrap-basic-authentication auth)
+             wrap-gzip
              wrap-force-ssl))
 
 ;;;;;;;;;;;;;;;;;;;;
