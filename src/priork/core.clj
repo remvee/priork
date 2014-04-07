@@ -28,13 +28,21 @@
 (defn gen-id []
   (str "task-" (UUID/randomUUID)))
 
-(def db (redis/init {:url (get (System/getenv)
-                               "REDISTOGO_URL" ; for running on Heroku
-                               "redis://localhost:6379/")}))
+(def db (atom nil))
 
-(def data (atom (or (if-let [val (redis/get db "data")]
-                      (with-in-str val (read)))
-                    {})))
+(def data (atom {}))
+
+(defn bootstrap! []
+  (swap! db
+         (fn [_]
+           (redis/init {:url (get (System/getenv)
+                                  "REDISTOGO_URL"
+                                  "redis://localhost:6379/")})))
+  (swap! data
+         (fn [_]
+           (or (if-let [val (redis/get @db "data")]
+                 (with-in-str val (read)))
+               {}))))
 
 (def backup-agent (agent nil))
 
@@ -47,7 +55,7 @@
                                            [*project*]
                                            (fn [v] (apply f v args))))))
           (send-off backup-agent
-                    (fn [_] (redis/set db "data" (with-out-str (prn @data)))))))
+                    (fn [_] (redis/set @db "data" (with-out-str (prn @data)))))))
 
 (defn projects []
   (sort (keys @data)))
@@ -182,5 +190,6 @@
 ;;;;;;;;;;;;;;;;;;;;
 ;; Running for running on Heroku
 (defn -main []
+  (bootstrap!)
   (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))]
     (jetty/run-jetty (var app) {:port port})))
