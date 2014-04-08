@@ -33,16 +33,14 @@
 (def data (atom {}))
 
 (defn bootstrap! []
-  (swap! db
-         (fn [_]
-           (redis/init {:url (get (System/getenv)
-                                  "REDISTOGO_URL"
-                                  "redis://localhost:6379/")})))
-  (swap! data
-         (fn [_]
-           (or (if-let [val (redis/get @db "data")]
-                 (with-in-str val (read)))
-               {}))))
+  (reset! db
+          (redis/init {:url (get (System/getenv)
+                                 "REDISTOGO_URL"
+                                 "redis://localhost:6379/")}))
+  (reset! data
+          (or (if-let [val (redis/get @db "data")]
+                (with-in-str val (read)))
+              {})))
 
 (def backup-agent (agent nil))
 
